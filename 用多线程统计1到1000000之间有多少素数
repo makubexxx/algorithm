@@ -1,0 +1,112 @@
+package com.cdutcm.cis.base;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+/**
+ * @Author: Meiziyu
+ * @Date: 2019/3/21 19:28
+ * @Email 308348194@qq.com
+ *多线程计算素数
+ */
+public class CountPrime {
+
+    //获取CPU核心数
+    public static int num = Runtime.getRuntime().availableProcessors();
+
+
+    public static void main(String[] args) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        System.out.println("avail processors count: " + num);
+        long end = System.currentTimeMillis();
+        System.out.println("并行计算所用时间：" + (end - start) + "毫秒");
+        int range = 100086;
+        int size =range/num;
+        int remine =range%num;
+        System.out.println("size: " + size+"   remine:"+remine);
+        int startnum;
+        int endnum ;
+        int reminestartnum;
+        int remineendnum;
+        List<Callable<Integer>> list =new ArrayList<>();
+        if (remine>0)
+        {
+            for (int i=0;i<num;i++)
+            {
+                startnum =i*size+1;
+                endnum = startnum+size-1;
+                PrimeCalculationThread server = new PrimeCalculationThread(startnum, endnum);
+                list.add(server);
+                System.out.println("startnum: " + startnum+"   endnum:"+endnum);
+            }
+            reminestartnum =size*num+1;
+            remineendnum=size*num+remine;
+            System.out.println("reminestartnum: " + reminestartnum+"   remineendnum:"+remineendnum);
+            PrimeCalculationThread server = new PrimeCalculationThread(reminestartnum, remineendnum);
+            list.add(server);
+
+        }
+        else {
+            for (int i=0;i<num;i++)
+            {
+                startnum =i*size+1;
+                endnum = startnum+size-1;
+                PrimeCalculationThread server = new PrimeCalculationThread(startnum, endnum);
+                list.add(server);
+                System.out.println("startnum: " + startnum+"   endnum:"+endnum);
+            }
+        }
+        // 线程服务提供者（线程池大小与主机核心默认是一样的）
+        ExecutorService executor = Executors.newWorkStealingPool();
+     // 3.批量执行所有的线程
+        Integer collect = executor.invokeAll(list)
+                .stream()
+                .map(future -> {
+                    Integer sum = 0;
+                    try {
+                        sum = future.get();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                    return sum;
+                }).collect(Collectors.summingInt(Integer::intValue));
+        System.out.println("素数的数量 : " + collect);
+    }
+}
+
+/**
+ * 范围内(列如小于等于1000)的多线程计算素数的方法
+ */
+class PrimeCalculationThread implements Callable<Integer> {
+    private int start;
+    private int end;
+
+    public PrimeCalculationThread(int start, int end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        int sum = 0;
+        int j;
+        for (int i = start; i <= end; i++) {
+            j = 2;
+            for (; j <= Math.sqrt(i); j++) {
+                if (i % j == 0) {
+                    break;
+                }
+            }
+            if (j > Math.sqrt(i)) {
+                // System.out.println(i);
+                sum++;
+            }
+        }
+        return sum;
+    }
+
+}
