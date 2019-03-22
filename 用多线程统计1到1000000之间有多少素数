@@ -1,4 +1,4 @@
-package com.cdutcm.cis.base;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +20,7 @@ public class CountPrime {
     public static void main(String[] args) throws InterruptedException {
         long start = System.currentTimeMillis();
         System.out.println("avail processors count: " + num);
-        long end = System.currentTimeMillis();
-        System.out.println("并行计算所用时间：" + (end - start) + "毫秒");
+
         int range = 100086;
         int size =range/num;
         int remine =range%num;
@@ -75,6 +74,8 @@ public class CountPrime {
                     return sum;
                 }).collect(Collectors.summingInt(Integer::intValue));
         System.out.println("素数的数量 : " + collect);
+        long end = System.currentTimeMillis();
+        System.out.println("并行计算所用时间：" + (end - start) + "毫秒");
     }
 }
 
